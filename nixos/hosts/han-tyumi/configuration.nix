@@ -381,8 +381,20 @@ in
   # };
 
   environment.systemPackages =
-    with pkgs;
+    let
+      gnome-disks-exfatprogs = (
+        pkgs.gnome-disk-utility.overrideAttrs (prev: {
+          buildInputs = prev.buildInputs ++ (with pkgs; [ exfatprogs ]);
+        })
+      );
+
+      nvim = inputs.nvim.packages.${pkgs.hostPlatform.system}.nvim;
+    in
     [
+      gnome-disks-exfatprogs
+      nvim
+    ]
+    ++ (with pkgs; [
       # globalprotect-openconnect
       # kdePackages.marble
       # qgis
@@ -411,15 +423,8 @@ in
       vmware-workstation # Industry standard hypervisor
       zathura # Document viewer
       zotero # Citation aggregator
-    ]
+    ])
     ++ (with pkgsUnstable; [
       obsidian
-    ])
-    ++ [
-      inputs.nvim.packages.${stdenv.hostPlatform.system}.nvim
-      # inputs.nvim.packages.${stdenv.hostPlatform.system}.tidal
-      (pkgs.gnome-disk-utility.overrideAttrs (prev: {
-        buildInputs = prev.buildInputs ++ (with pkgs; [ exfatprogs ]);
-      }))
-    ];
+    ]);
 }

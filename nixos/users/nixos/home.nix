@@ -5,16 +5,7 @@
   username,
   ...
 }:
-let
-  pkgsUnstable = inputs.nixpkgs-unstable.legacyPackages."${pkgs.stdenv.system}";
-in
 {
-  imports = [
-    ../../modules/home/terminal.nix
-  ];
-
-  terminal.enable = true;
-
   # Adds each spell in my spellbook to PATH as a derivation with a binary :]
   # Gosh do I love the fact that Nix is a whole functional language too
   # I love functional programming
@@ -57,17 +48,91 @@ in
         pkgs.lib.filterAttrs (name: type: !(pkgs.lib.hasSuffix ".bak" name)) (builtins.readDir configPath)
       );
 
-  home.file = {
-    ".gitconfig".source = ./../../../.gitconfig;
-    ".secrets".source = ./../../../.secrets;
+  home = {
+    shell = {
+      enableZshIntegration = true;
+    };
+
+    shellAliases = {
+      c = "clear";
+      icat = "kitten icat";
+      l = "eza -a --sort=type --group-directories-first";
+      ls = "eza";
+      v = "nvim";
+    };
+
+    file = {
+      ".gitconfig".source = ./../../../.gitconfig;
+      ".secrets".source = ./../../../.secrets;
+    };
+
+    # This value determines the Home Manager release that your configuration is
+    # compatible with. This helps avoid breakage when a new Home Manager release
+    # introduces backwards incompatible changes.
+    #
+    # You should not change this value, even if you update Home Manager. If you do
+    # want to update the value, then make sure to first check the Home Manager
+    # release notes.
+    stateVersion = "26.05"; # Please read the comment before changing.
   };
 
-  # This value determines the Home Manager release that your configuration is
-  # compatible with. This helps avoid breakage when a new Home Manager release
-  # introduces backwards incompatible changes.
-  #
-  # You should not change this value, even if you update Home Manager. If you do
-  # want to update the value, then make sure to first check the Home Manager
-  # release notes.
-  home.stateVersion = "26.05"; # Please read the comment before changing.
+  programs = {
+    bat.enable = true;
+
+    zsh = {
+      enable = true;
+      package = pkgs.zsh;
+      enableCompletion = true;
+      autosuggestion.enable = true;
+      syntaxHighlighting.enable = true;
+
+      oh-my-zsh = {
+        enable = true;
+      };
+
+      initContent = builtins.readFile ./../../../.zshrc;
+    };
+
+    starship = {
+      enable = true;
+      enableZshIntegration = true;
+    };
+
+    yazi = {
+      enable = true;
+      enableZshIntegration = true;
+      shellWrapperName = "y";
+    };
+
+    zoxide = {
+      enable = true;
+      enableZshIntegration = true;
+    };
+
+    fzf = {
+      enable = true;
+      enableZshIntegration = true;
+    };
+
+    eza = {
+      enable = true;
+      enableZshIntegration = true;
+      git = true;
+      icons = "auto";
+      colors = "auto";
+    };
+
+    kitty = {
+      enable = true;
+      shellIntegration.enableZshIntegration = true;
+      enableGitIntegration = true;
+    };
+
+    direnv = {
+      enable = true;
+      enableZshIntegration = true;
+      nix-direnv.enable = true;
+      silent = true;
+    };
+  };
 }

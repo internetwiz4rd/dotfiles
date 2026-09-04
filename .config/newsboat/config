@@ -1,0 +1,23 @@
+unbind-key k
+unbind-key j
+# unbind-key l
+# unbind-key h
+# unbind-key <Enter>
+
+bind k everywhere up
+bind j everywhere down
+# bind l open
+# bind h quit
+
+color background          white   default
+color listnormal          white   default
+color listfocus           black   white   bold
+color listnormal_unread   white   default bold
+color listfocus_unread    black   white   bold
+color title               black   white   bold
+color info                white   default bold
+color hint-key            white   default bold
+color hint-keys-delimiter white   default
+color hint-separator      white   default bold
+color hint-description    white   default
+color article             white   default
