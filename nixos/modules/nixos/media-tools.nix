@@ -21,7 +21,6 @@ in
   config = lib.mkIf config.modules.media-tools.enable {
     environment.systemPackages =
       (with pkgs; [
-        audacity # Audio editor
         dvgrab # DV Camcorder Video Capture
         ffmpeg # Video format transcription
         gimp # Image editor
@@ -33,6 +32,7 @@ in
       ])
       ++ (with pkgsUnstable; [
         # vcv-rack # Modular synthesizers
+        audacity # Audio editor
         yt-dlp # YouTube downloader
       ]);
 
