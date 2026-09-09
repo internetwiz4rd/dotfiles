@@ -50,13 +50,6 @@
 
   services = {
     dunst.enable = true;
-
-    displayManager = {
-      autoLogin = {
-        enable = true;
-        user = "nixos";
-      };
-    };
   };
 
   environment = {
