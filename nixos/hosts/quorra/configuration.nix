@@ -50,6 +50,11 @@
 
   services = {
     dunst.enable = true;
+
+    displayManager.autoLogin = {
+      enable = true;
+      user = nixos.username;
+    };
   };
 
   environment = {
@@ -108,6 +113,7 @@
         rsync # Sync drives
         sd # sed alternative
         unzip
+        usbutils
         waybar # Status bar
         wl-clipboard # Manage clipboard on wayland
         wpaperd
