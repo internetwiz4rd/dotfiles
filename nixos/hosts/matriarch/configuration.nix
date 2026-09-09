@@ -26,73 +26,75 @@ let
   };
 in
 {
-  imports = [
-    # ./../../nixos-modules/terminal.nix
-    # ./../../nixos-modules/system-security.nix
-  ];
+  nix = {
+    gc = {
+      automatic = true;
+      dates = "daily";
+      options = "--delete-older-than 5d";
+    };
 
-  # kde-config.enable = true;
-  # modules.terminal.enable = true;
-  # modules.kde-config.enable = true;
-
-  # Enable the X11 windowing system.
-  # You can disable this if you're only using the Wayland session.
-  services.xserver.enable = true;
-
-  # Enable the KDE Plasma Desktop Environment.
-  services.displayManager.sddm.enable = true;
-  services.desktopManager.plasma6.enable = true;
-
-  environment.plasma6.excludePackages = with pkgs; [
-    kdePackages.elisa
-    kdePackages.konsole
-    # kdePackages.kwrite
-    kdePackages.kate
-    xterm
-    kdePackages.ktexteditor
-  ];
-
-  # Configure keymap in X11
-  services.xserver.xkb = {
-    layout = "us";
-    variant = "";
+    settings = {
+      auto-optimise-store = true;
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
+    };
   };
-
-  nix.settings.experimental-features = [
-    "nix-command"
-    "flakes"
-  ];
 
   # Bootloader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-
-  # # Enables auto upgrades
-  # system.autoUpgrade = {
-  #   enable = true;
-  #   flake = "path:./../flake.nix";
-  #   dates = "weekly";
-  #   allowReboot = true;
-  #   rebootWindow = {
-  #     lower = "01:00";
-  #     upper = "05:00";
-  #   };
-  # };
-
-  nix.gc = {
-    automatic = true;
-    dates = "daily";
-    options = "--delete-older-than 5d";
+  boot.loader = {
+    systemd-boot.enable = true;
+    efi.canTouchEfiVariables = true;
   };
 
-  nix.settings.auto-optimise-store = true;
-
   hardware = {
-    #   # # OpenGL
-    #   # graphics.enable = true;
-    #   # Most wayland compositors need this
-    #   # nvidia.modesetting.enable = true;
+    # Allow drawing tablet
     opentabletdriver.enable = true;
+
+    # Enable bluetooth
+    bluetooth = {
+      enable = true;
+      powerOnBoot = true;
+      settings = {
+        General = {
+          Experimental = true;
+          FastConnectable = true;
+        };
+        Policy = {
+          AutoEnable = true;
+        };
+      };
+    };
+  };
+
+  security.rtkit.enable = true;
+
+  services = {
+    # Enable the KDE Plasma Desktop Environment.
+    displayManager.sddm.enable = true;
+    desktopManager.plasma6.enable = true;
+
+    # Enable sound with pipewire.
+    pipewire = {
+      enable = true;
+      audio.enable = true;
+      wireplumber.enable = true;
+      pulse.enable = true;
+      jack.enable = true;
+      socketActivation = true;
+    };
+
+    # Enable CUPS to print documents.
+    printing.enable = true;
+
+    flatpak.enable = true;
+
+    # Configure keymap in X11
+    xserver.xkb = {
+      layout = "us";
+      variant = "";
+    };
   };
 
   hostName = baseNameOf (toString ./.); # Defines the hostname based off of the name of the parent directory
@@ -102,85 +104,58 @@ in
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
-  # Enable networking
-  networking.networkmanager.enable = true;
-
-  # Enable bluetooth
-  hardware.bluetooth = {
-    enable = true;
-    powerOnBoot = true;
-    settings = {
-      General = {
-        Experimental = true;
-        FastConnectable = true;
-      };
-      Policy = {
-        AutoEnable = true;
-      };
+  networking = {
+    # Enable networking
+    networkmanager.enable = true;
+    # Open ports in the firewall.
+    firewall = {
+      allowedTCPPorts = [ ];
+      allowedUDPPorts = [ ];
+      allowedTCPPortRanges = [
+        {
+          from = 1714;
+          to = 1764;
+        }
+      ];
+      allowedUDPPortRanges = [
+        {
+          from = 1714;
+          to = 1764;
+        }
+      ];
     };
   };
-
-  # services.blueman.enable = true;
 
   # Set your time zone.
   time.timeZone = "America/Chicago";
 
-  # Select internationalisation properties.
-  i18n.defaultLocale = "en_US.UTF-8";
-
   # Allow unsupported systems
-  nixpkgs.config.allowUnsupportedSystem = true;
-
-  i18n.extraLocaleSettings = {
-    LC_ADDRESS = "en_US.UTF-8";
-    LC_IDENTIFICATION = "en_US.UTF-8";
-    LC_MEASUREMENT = "en_US.UTF-8";
-    LC_MONETARY = "en_US.UTF-8";
-    LC_NAME = "en_US.UTF-8";
-    LC_NUMERIC = "en_US.UTF-8";
-    LC_PAPER = "en_US.UTF-8";
-    LC_TELEPHONE = "en_US.UTF-8";
-    LC_TIME = "en_US.UTF-8";
+  nixpkgs.config = {
+    allowUnsupportedSystem = true;
+    allowUnfree = true;
   };
 
-  # Enable CUPS to print documents.
-  services.printing.enable = true;
+  # Select internationalisation properties.
+  i18n = {
+    defaultLocale = "en_US.UTF-8";
 
-  # Enable sound with pipewire.
-  security.rtkit.enable = true;
-  services.pipewire = {
-    enable = true;
-    audio.enable = true;
-    wireplumber.enable = true;
-    pulse.enable = true;
-    jack.enable = true;
-    socketActivation = true;
-    # alsa = {
-    #   enable = true;
-    #   support32Bit = true;
-    # };
+    extraLocaleSettings = {
+      LC_ADDRESS = "en_US.UTF-8";
+      LC_IDENTIFICATION = "en_US.UTF-8";
+      LC_MEASUREMENT = "en_US.UTF-8";
+      LC_MONETARY = "en_US.UTF-8";
+      LC_NAME = "en_US.UTF-8";
+      LC_NUMERIC = "en_US.UTF-8";
+      LC_PAPER = "en_US.UTF-8";
+      LC_TELEPHONE = "en_US.UTF-8";
+      LC_TIME = "en_US.UTF-8";
+    };
   };
 
   # Fonts
   fonts.packages = with pkgs; [
     nerd-fonts.roboto-mono
   ];
-
-  # Define a user account. Don't forget to set a password with ‘passwd’.
-  # users.users.${stellae} = {
-  #   isNormalUser = true;
-  #   description = "Stellae";
-  #   extraGroups = [
-  #     "networkmanager"
-  #     "wheel"
-  #     "dialout"
-  #     "video"
-  #     "jackaudio"
-  #     "audio"
-  #     "cdrom"
-  #   ];
-  #   shell = pkgs.zsh;
-  # };
 
   users.users.${syren.username} = {
     isNormalUser = true;
@@ -195,108 +170,58 @@ in
       "cdrom"
     ];
     shell = pkgs.zsh;
-    # packages = with pkgs; [
-    # ];
+    initialPassword = "";
   };
 
   # Auto-sync dotfiles for Syren
-  systemd.timers."dotfiles" = {
-    timerConfig = {
-      OnBootSec = "5m";
-      # OnUnitActiveSec = "5m";
-      # Alternatively, if you prefer to specify an exact timestamp
-      # like one does in cron, you can use the `OnCalendar` option
-      # to specify a calendar event expression.
-      # Run every Monday at 10:00 AM in the Asia/Kolkata timezone.
-      #OnCalendar = "Mon *-*-* 10:00:00 Asia/Kolkata";
-      # OnCalendar = "Mon *-*-* 04:00:00 America/Chicago";
-      Unit = "dotfiles.service";
+  systemd = {
+    timers."dotfiles" = {
+      timerConfig = {
+        OnBootSec = "5m";
+        # OnUnitActiveSec = "5m";
+        # Alternatively, if you prefer to specify an exact timestamp
+        # like one does in cron, you can use the `OnCalendar` option
+        # to specify a calendar event expression.
+        # Run every Monday at 10:00 AM in the Asia/Kolkata timezone.
+        #OnCalendar = "Mon *-*-* 10:00:00 Asia/Kolkata";
+        # OnCalendar = "Mon *-*-* 04:00:00 America/Chicago";
+        Unit = "dotfiles.service";
+      };
+    };
+
+    services."dotfiles" = {
+      script = ''
+        set -eu
+        pushd $HOME/dotfiles
+        ${pkgs.git}/bin/git fetch --all
+        ${pkgs.git}/bin/git rebase origin/master
+        ${pkgs.git}/bin/git pull origin master --all
+        popd
+      '';
+      serviceConfig = {
+        Type = "oneshot";
+        User = "${syren.username}";
+      };
     };
   };
 
-  systemd.services."dotfiles" = {
-    script = ''
-      set -eu
-      pushd $HOME/dotfiles
-      ${pkgs.git}/bin/git fetch --all
-      ${pkgs.git}/bin/git rebase origin/master
-      ${pkgs.git}/bin/git pull origin master --all
-      popd
-    '';
-    serviceConfig = {
-      Type = "oneshot";
-      User = "${syren.username}";
-    };
-  };
-
-  # services.displayManager.autoLogin.user = "${syren.username}";
-
-  services.flatpak.enable = true;
   programs.zsh.enable = true;
-  # programs.kdeconnect.enable = true;
-  # programs.steam.enable = true;
 
-  # programs.nix-ld.enable = true;
-  # programs.nix-ld.libraries = with pkgs; [
-  #   # Add missing dynamic libraries for unpackaged programs here
-  # ];
+  environment = {
+    plasma6.excludePackages = with pkgs; [
+      kdePackages.elisa
+      kdePackages.konsole
+      # kdePackages.kwrite
+      kdePackages.kate
+      xterm
+      kdePackages.ktexteditor
+    ];
 
-  # environment.localBinInPath = true;
-
-  # xdg.portal.enable = true;
-  # xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-
-  # File system management
-  # services.gvfs.enable = true;
-  # services.udisks2.enable = true;
-
-  # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
-  # programs.mtr.enable = true;
-  # programs.gnupg.agent = {
-  #   enable = true;
-  #   enableSSHSupport = true;
-  # };
-
-  # List services that you want to enable:
-
-  # Enable the OpenSSH daemon.
-  # services.openssh.enable = true;
-
-  # Open ports in the firewall.
-  networking.firewall.allowedTCPPorts = [ ];
-  networking.firewall.allowedUDPPorts = [ ];
-  networking.firewall.allowedTCPPortRanges = [
-    {
-      from = 1714;
-      to = 1764;
-    }
-  ];
-  networking.firewall.allowedUDPPortRanges = [
-    {
-      from = 1714;
-      to = 1764;
-    }
-  ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
-
-  nixpkgs.config.allowUnfree = true;
-
-  # List packages installed in system profile. To search, run:
-  # $ nix-search wget
-  environment.systemPackages =
-    with pkgs;
-    [
-      inputs.nvim.packages.${stdenv.hostPlatform.system}.nvim
-      # inputs.nvim.packages.${stdenv.hostPlatform.system}.tidal
-      # inputs.timr-tui.packages.${stdenv.hostPlatform.system}.default
-      # inputs.rmpc.packages.${system}.rmpc
-    ]
-    ++ [
+    systemPackages = [
+      inputs.nvim.packages.${pkgs.stdenv.hostPlatform.system}.nvim
       discoverWrapped
     ]
-    ++ [
+    ++ (with pkgs; [
       aseprite
       discord
       dust # Modern `du`
@@ -309,15 +234,9 @@ in
       unzip
       vscodium-fhs
       git
-      ripgrep
-      jq
-      fzf
       kitty
-    ]
-    ++ [
-      # steam
-      # krita
-    ];
+    ]);
+  };
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
@@ -325,5 +244,5 @@ in
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "25.05"; # Did you read the comment?
+  system.stateVersion = "26.05"; # Did you read the comment?
 }
